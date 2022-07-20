@@ -33,4 +33,10 @@ public class BoardController {
 		List<BoardDTO> list =  boardMapper.getList();
 		return list;
 	}
+	
+	@PostMapping("/boardInsert.do")
+	@ResponseBody
+	public void boardInsert(BoardDTO dto) {
+		boardMapper.boardInsert(dto);
+	}
 }

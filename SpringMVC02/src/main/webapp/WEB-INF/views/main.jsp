@@ -46,8 +46,48 @@
 			list += "<td>"+data.count+"</td>";
 			list += "</tr>";
 		});
+		list += "<tr>";
+		list += "<td colspan='5'><button class='btn btn-info btn-sm' onclick='goForm()'>글쓰기</button></td>";
+		list += "</tr>";
 		list += "</table>";
 		$("#view").html(list);
+		
+		$("#view").show();
+		$("#insertForm").css("display", "none");
+	}
+  	
+  	function goForm() {
+  		//$("#view").css("display", "none");
+  		$("#view").hide();
+  		$("#insertForm").css("display", "block");
+	}
+  	
+  	function goList() {
+  		//$("#view").css("display", "block");
+  		$("#view").show();
+  		$("#insertForm").css("display", "none");
+	}
+  	
+  	function goInsert() {
+//   		var title   = $("#title").val();
+//   		var content = $("#content").val();
+//   		var writer  = $("#writer").val();
+  		
+  		var formData = $("#frm").serialize();
+  		
+  		$.ajax({
+  			url: "boardInsert.do",
+  			type: "post",
+  			data: formData,
+  			success: loadList,
+  			error: function () {
+				alert("error");
+			}
+  		});
+  		
+  		$("#title").val("");
+  		$("#content").val("");
+  		$("#writer").val("");
 	}
   		
   </script>
@@ -59,6 +99,31 @@
   <div class="panel panel-default">
     <div class="panel-heading">Boare</div>
     <div class="panel-body" id="view" >Panel Content</div>
+    <div class="panel-body" id="insertForm" style="display: none;">
+		<form id="frm">
+			<table class="table">
+				<tr>
+					<td>제목</td>
+					<td><input type="text" id="title" name="title" class="form-control"/></td>
+				</tr>
+				<tr>
+					<td>내용</td>
+					<td><textarea rows="7" id="content" name="content" class="form-control"></textarea></td>
+				</tr>
+				<tr>
+					<td>작성자</td>
+					<td><input type="text" id="writer" name="writer" class="form-control"/></td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<button type="button" class="btn btn-success btn-sm" onclick="goInsert()">등록</button>
+						<button type="reset" class="btn btn-warning btn-sm">취소</button>
+						<button type="button" class="btn btn-info btn-sm" onclick="goList()">목록</button>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
     <div class="panel-footer">Panel Content</div>
   </div>
 </div>
