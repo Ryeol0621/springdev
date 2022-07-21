@@ -18,7 +18,8 @@
   	
   	function loadList() {
 		$.ajax({
-			url : "boardList.do",
+			//url : "boardList.do",
+			url : "board/all",
 			type : "get",
 			dataType : "json",
 			success : makeView,
@@ -40,11 +41,24 @@
 		$.each(data, function(index,data){ //data에서 값을 꺼내와서 function(index,data)에 넣는다
 			list += "<tr>";
 			list += "<td>"+data.idx+"</td>";
-			list += "<td>"+data.title+"</td>";
+			list += "<td id='t"+data.idx+"'><a href='javascript:goContent("+data.idx+")'>"+data.title+"</a></td>";
 			list += "<td>"+data.writer+"</td>";
-			list += "<td>"+data.indatex+"</td>";
-			list += "<td>"+data.count+"</td>";
+			list += "<td>"+data.indate+"</td>";
+			list += "<td id='cnt"+data.idx+"'>"+data.count+"</td>";
 			list += "</tr>";
+			
+			list += "<tr id='c"+data.idx+"' style='display:none'>";
+			list += "<td>내용</td>";
+			list += "<td colspan='4'>";
+			//list += "<textarea id='text"+data.idx+"' readonly rows='7'class='form-control'>"+data.content+"</textarea>";
+			list += "<textarea id='text"+data.idx+"' readonly rows='7'class='form-control'></textarea>";
+			list += "</br>"
+			list += "<span id='ub"+data.idx+"'><button class='btn btn-info btn-sm' onclick='goUpdateForm("+data.idx+")'>수정화면</button></span> &nbsp"
+			list += "<button class='btn btn-warning btn-sm' onclick='goDelete("+data.idx+")'>삭제</button> &nbsp"
+			list += "<span id='listB"+data.idx+"'></span>"
+			list += "</td>";
+			list += "</tr>";
+			
 		});
 		list += "<tr>";
 		list += "<td colspan='5'><button class='btn btn-info btn-sm' onclick='goForm()'>글쓰기</button></td>";
@@ -54,6 +68,41 @@
 		
 		$("#view").show();
 		$("#insertForm").css("display", "none");
+	}
+  	
+  	function goContent(idx) {
+  		if($("#c"+idx).css("display") == "none"){
+	  		$.ajax({
+	  			//url: "boardContent.do", 
+	  			url: "board/"+idx, 
+	  			type: "get",
+	  			//data: {"idx":idx},
+	  			dataType: "json",
+	  			success: function (data) {
+					$("#text"+idx).val(data.content);
+				},
+	  			error: function () {
+					alert("error");
+				}	
+	  		});
+	  		$("#c"+idx).css("display", "table-row");
+	  		$("#text"+idx).attr("readonly", true)
+  		}else{
+  			$("#c"+idx).css("display", "none");
+	  		$.ajax({
+	  			//url: "boardCount.do", 
+	  			url: "board/count/"+idx,
+	  			type: "put",
+	  			//data: {"idx":idx},
+	  			dataType: "json",
+	  			success: function (data) {
+					$("#cnt"+idx).text(data.count);
+				},
+	  			error: function () {
+					alert("error");
+				}	
+	  		});
+  		}
 	}
   	
   	function goForm() {
@@ -76,7 +125,8 @@
   		var formData = $("#frm").serialize();
   		
   		$.ajax({
-  			url: "boardInsert.do",
+  			//url: "boardInsert.do",
+  			url: "board/new",
   			type: "post",
   			data: formData,
   			success: loadList,
@@ -85,11 +135,55 @@
 			}
   		});
   		
-  		$("#title").val("");
-  		$("#content").val("");
-  		$("#writer").val("");
+//   		$("#title").val("");
+//   		$("#content").val("");
+//   		$("#writer").val("");
+  		$("#clear").trigger("click");
 	}
+  	
+  	function goDelete(idx) {
+  		$.ajax({
+  			//url: "boardDelete.do",   //   "boardDelete.do/"+idx
+  			url: "board/"+idx,   //   "boardDelete.do/"+idx
+  			type: "delete",
+  			//type: "get",
+  			//data: {"idx":idx},
+  			success: loadList, 
+  			error:function () {
+				alert("error");
+			}
+  		});
+	}
+  	
+  	function goUpdateForm(idx) {
+		$("#text"+idx).attr("readonly", false);
+		
+		var title = $("#t"+idx).text();
+		var newInput = "<input id='nt"+idx+"' type='text' class='form-control' value='"+title+"'/></td>"
+		$("#t"+idx).html(newInput);
+		
+		var newButton 	  = "<button class='btn btn-primary btn-sm' onclick='goUpdate("+idx+")'>수정</button>"
+		var newListButton = "<button class='btn btn-info btn-sm' onclick='loadList()'>목록</button>"
+		$("#ub"+idx).html(newButton);
+		$("#listB"+idx).html(newListButton);
+	}
+
+  	function goUpdate(idx) {
+  		var title   = $("#nt"+idx).val();
+  		var content = $("#text"+idx).val();
   		
+  		$.ajax({
+  			//url: "boardUpdate.do",   //   "boardDelete.do/"+idx
+  			url: "board/update",   //   "boardDelete.do/"+idx
+  			type: "put",
+  			contentType: "application/json;charset=utf-8",
+  			data: JSON.stringify({"idx":idx, "title":title, "content":content}),
+  			success: loadList, 
+  			error:function () {	
+				alert("error");
+			}
+  		});
+	}
   </script>
 </head>
 <body>
@@ -117,13 +211,13 @@
 				<tr>
 					<td colspan="2">
 						<button type="button" class="btn btn-success btn-sm" onclick="goInsert()">등록</button>
-						<button type="reset" class="btn btn-warning btn-sm">취소</button>
+						<button type="reset" class="btn btn-warning btn-sm" id="clear">취소</button>
 						<button type="button" class="btn btn-info btn-sm" onclick="goList()">목록</button>
 					</td>
 				</tr>
 			</table>
 		</form>
-	</div>
+	  </div>
     <div class="panel-footer">Panel Content</div>
   </div>
 </div>
